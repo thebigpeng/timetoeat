@@ -1,0 +1,84 @@
+<!--chat.wxml-->
+<view class="page">
+  <navigation-bar title="{{titleText}}" back="{{true}}" color="#1F2329" background="#FFFFFF"></navigation-bar>
+
+  <view wx:if="{{friend}}" class="dish-section">
+    <view class="dish-section-title">
+      <text class="section-title">{{friend.displayName}} 会做的菜</text>
+      <text class="muted">点一下说想吃</text>
+    </view>
+    <scroll-view wx:if="{{dishes.length > 0}}" class="dish-strip" scroll-x>
+      <view class="dish-strip-inner">
+        <view class="dish-card" wx:for="{{dishes}}" wx:key="id" data-id="{{item.id}}" bindtap="onDishTap" hover-class="dish-card-hover" hover-stay-time="80">
+          <view class="dish-card-emoji">{{item.emoji}}</view>
+          <view class="dish-card-name ellipsis">{{item.name}}</view>
+          <view class="dish-card-hint">我想吃</view>
+        </view>
+      </view>
+    </scroll-view>
+    <view wx:else class="dish-empty">这位好友还没有添加会做的菜</view>
+  </view>
+
+  <scroll-view class="chat-list" scroll-y scroll-into-view="{{scrollTo}}">
+    <view class="chat-inner">
+      <view wx:if="{{hasMore}}" class="chat-empty" bindtap="loadOlder">{{loadingOlder ? '加载中…' : '查看更早消息'}}</view>
+      <view class="message-row {{item.isMine ? 'mine' : ''}}" wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
+        <view class="msg-avatar">{{item.avatar}}</view>
+        <view class="msg-body">
+          <view wx:if="{{item.type === 'text'}}" class="bubble">{{item.content}}</view>
+          <view wx:elif="{{item.type === 'dish'}}" class="dish-bubble">
+            <text class="dish-bubble-emoji">{{item.dishEmoji}}</text>
+            <view class="grow">
+              <view class="dish-bubble-label">我想吃这道</view>
+              <view class="dish-bubble-name">{{item.dishName}}</view>
+            </view>
+            <view
+              wx:if="{{item.isMine}}"
+              class="message-nudge-btn"
+              data-id="{{item.dishId}}"
+              data-name="{{item.dishName}}"
+              data-emoji="{{item.dishEmoji}}"
+              catchtap="onNudge"
+            >催一下</view>
+          </view>
+          <view wx:elif="{{item.type === 'sticker'}}" class="sticker-bubble">{{item.content}}</view>
+          <view wx:elif="{{item.type === 'nudge'}}" class="nudge-bubble">
+            <view class="nudge-title">⏰ 催饭提醒 · {{item.dishName}}</view>
+            <view class="nudge-content">{{item.content}}</view>
+          </view>
+          <view class="msg-time">{{item.timeText}}<text wx:if="{{item.readText}}" class="read-flag"> · {{item.readText}}</text></view>
+        </view>
+      </view>
+      <view wx:if="{{messages.length === 0}}" class="chat-empty">打个招呼，或者点一道 TA 会做的菜吧</view>
+    </view>
+  </scroll-view>
+
+  <scroll-view wx:if="{{showStickers}}" class="sticker-panel" scroll-y>
+    <view class="sticker-grid">
+      <view
+        class="sticker-item"
+        wx:for="{{stickerList}}"
+        wx:key="*this"
+        data-emoji="{{item}}"
+        bindtap="onStickerTap"
+        hover-class="sticker-item-hover"
+        hover-stay-time="80"
+      >{{item}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="input-bar">
+    <view class="emoji-btn" bindtap="toggleStickers">{{showStickers ? '⌨️' : '😊'}}</view>
+    <input
+      class="chat-input"
+      value="{{inputText}}"
+      placeholder="说点什么..."
+      maxlength="1000"
+      placeholder-class="chat-placeholder"
+      confirm-type="send"
+      bindinput="onInput"
+      bindconfirm="send"
+    />
+    <view class="send-btn" bindtap="send">{{sending ? '发送中' : '发送'}}</view>
+  </view>
+</view>

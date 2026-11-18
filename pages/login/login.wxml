@@ -1,0 +1,53 @@
+<!--login.wxml-->
+<view class="page">
+  <navigation-bar title="登录" back="{{true}}" color="#1F2329" background="#FFFFFF"></navigation-bar>
+  <scroll-view class="content" scroll-y>
+    <view class="login-content">
+      <view class="brand">
+        <view class="brand-logo">🍚</view>
+        <view class="brand-name">时味到餐</view>
+        <view class="brand-slogan">登录后即可添加菜品，和好友商量今晚蹭哪家的饭</view>
+      </view>
+
+      <view wx:if="{{user}}" class="card user-card">
+        <image wx:if="{{user.avatarUrl}}" class="avatar" src="{{user.avatarUrl}}"></image>
+        <view wx:else class="avatar avatar-placeholder">😊</view>
+        <view class="grow">
+          <view class="nickname">{{user.nickName}}</view>
+          <view class="muted">已登录 · {{user.loginType === 'test' ? '测试账号' : '微信账号'}} · ID {{user.id}}</view>
+        </view>
+        <view class="checked">✓</view>
+      </view>
+
+      <view class="card" style="padding: 28rpx; margin: 24rpx 0;">
+        <view wx:if="{{testLogin}}" class="muted">本地测试登录：同一账号复用用户，切换账号可测试双方聊天</view>
+        <input wx:if="{{testLogin}}" value="{{account}}" maxlength="64" placeholder="测试账号，例如 tester-001" data-field="account" bindinput="onFieldInput" style="margin: 24rpx 0;" />
+        <input value="{{nickName}}" maxlength="64" placeholder="首次注册昵称" data-field="nickName" bindinput="onFieldInput" style="margin: 24rpx 0;" />
+        <view wx:if="{{user}}" bindtap="logout" class="muted">退出当前账号</view>
+      </view>
+      <view class="benefits">
+        <view class="benefit">
+          <text class="benefit-icon">🍲</text>
+          <text>查看好友会做的菜</text>
+        </view>
+        <view class="benefit">
+          <text class="benefit-icon">💬</text>
+          <text>想吃什么直接说</text>
+        </view>
+        <view class="benefit">
+          <text class="benefit-icon">✍️</text>
+          <text>添加我会做的菜</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="login-footer">
+    <view class="primary-btn login-btn {{logging ? 'disabled' : ''}}" bindtap="onWechatLogin">
+      <view class="wechat-icon">微</view>
+      {{logging ? '登录中…' : (testLogin ? '测试账号登录' : '微信登录')}}
+    </view>
+    <view class="agree">登录即表示同意《用户协议》和《隐私政策》</view>
+    <view class="guest-btn" bindtap="goHome">先逛逛</view>
+  </view>
+</view>

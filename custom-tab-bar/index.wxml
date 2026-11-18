@@ -1,0 +1,17 @@
+<view wx:if="{{!remarkEditing}}" class="tabbar">
+  <view
+    class="tabbar-item {{selected === index ? 'selected' : ''}}"
+    wx:for="{{tabs}}"
+    wx:key="pagePath"
+    data-path="{{item.pagePath}}"
+    data-index="{{index}}"
+    bindtap="onTap"
+    hover-class="tabbar-hover"
+    hover-stay-time="80"
+  >
+    <view class="tabbar-icon-wrap">
+      <view class="tabbar-icon icon-{{item.key}}"></view>
+    </view>
+    <text class="tabbar-text {{selected === index ? 'active' : ''}}">{{item.text}}</text>
+  </view>
+</view>

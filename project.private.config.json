@@ -1,0 +1,15 @@
+{
+  "libVersion": "3.18.0",
+  "projectname": "你做啥我吃啥",
+  "setting": {
+    "urlCheck": false,
+    "coverView": true,
+    "lazyloadPlaceholderEnable": false,
+    "skylineRenderEnable": false,
+    "preloadBackgroundData": false,
+    "autoAudits": false,
+    "showShadowRootInWxmlPanel": true,
+    "compileHotReLoad": true,
+    "useGlassEaselForWxml": false
+  }
+}

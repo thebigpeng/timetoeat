@@ -1,0 +1,140 @@
+.login-content {
+  padding: 60rpx 40rpx 40rpx;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 60rpx;
+}
+
+.brand-logo {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 44rpx;
+  background: linear-gradient(135deg, #FF9A45, #FF5C35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 80rpx;
+  box-shadow: 0 16rpx 36rpx rgba(255, 107, 53, 0.22);
+}
+
+.brand-name {
+  margin-top: 28rpx;
+  font-size: 42rpx;
+  font-weight: 700;
+}
+
+.brand-slogan {
+  margin-top: 12rpx;
+  color: #8A8F99;
+  font-size: 25rpx;
+}
+
+.user-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 48rpx;
+  margin-right: 22rpx;
+  background: #F2F3F5;
+}
+
+.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+}
+
+.nickname {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 6rpx;
+}
+
+.checked {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 22rpx;
+  background: #E8F7ED;
+  color: #20A45B;
+  font-size: 26rpx;
+  line-height: 44rpx;
+  text-align: center;
+}
+
+.benefits {
+  margin-top: 40rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 12rpx 24rpx;
+}
+
+.benefit {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 22rpx 0;
+  font-size: 27rpx;
+  color: #4E535C;
+  border-bottom: 2rpx solid #F3F4F6;
+}
+
+.benefit:last-child {
+  border-bottom: none;
+}
+
+.benefit-icon {
+  width: 56rpx;
+  font-size: 34rpx;
+}
+
+.login-footer {
+  flex: none;
+  padding: 24rpx 40rpx calc(40rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  border-top: 2rpx solid #F0F1F3;
+}
+
+.login-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.wechat-icon {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 22rpx;
+  background: #FFFFFF;
+  color: #07C160;
+  font-size: 26rpx;
+  font-weight: 700;
+  line-height: 44rpx;
+  text-align: center;
+  margin-right: 16rpx;
+}
+
+.agree {
+  margin-top: 20rpx;
+  text-align: center;
+  color: #A0A5AD;
+  font-size: 22rpx;
+}
+
+.guest-btn {
+  margin-top: 16rpx;
+  text-align: center;
+  color: #6B7078;
+  font-size: 27rpx;
+  padding: 16rpx 0;
+}

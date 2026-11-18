@@ -1,0 +1,33 @@
+<!--messages.wxml-->
+<view class="page">
+  <navigation-bar title="消息" back="{{false}}" color="#1F2329" background="#FFFFFF"></navigation-bar>
+  <scroll-view class="content" scroll-y>
+    <view class="message-content tabbar-content">
+      <view class="section-head">
+        <text class="section-title">最近聊天</text>
+        <text class="muted">{{conversations.length}} 位好友</text>
+      </view>
+
+      <view class="conversation" wx:for="{{conversations}}" wx:key="id" data-id="{{item.id}}" bindtap="goChat" hover-class="conversation-hover" hover-stay-time="80">
+        <view class="conv-avatar-wrap">
+          <view class="conv-avatar">{{item.emoji}}</view>
+          <view wx:if="{{item.unreadCount > 0}}" class="unread-badge">{{item.unreadCount > 99 ? '99+' : item.unreadCount}}</view>
+        </view>
+        <view class="grow conv-main">
+          <view class="row between">
+            <text class="conv-name ellipsis">{{item.displayName}}</text>
+            <text class="conv-time">{{item.timeText}}</text>
+          </view>
+          <view class="conv-preview ellipsis">{{item.preview}}</view>
+        </view>
+      </view>
+
+      <view wx:if="{{conversations.length === 0}}" class="empty">
+        <view class="empty-emoji">💬</view>
+        <view class="empty-title">还没有消息</view>
+        <view class="empty-desc">去好友列表打个招呼吧</view>
+        <view class="primary-btn empty-btn" bindtap="goHome">去找好友</view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

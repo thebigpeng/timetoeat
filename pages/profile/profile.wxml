@@ -1,0 +1,67 @@
+<!--profile.wxml-->
+<view class="page profile-page">
+  <navigation-bar title="{{titleText}}" back="{{false}}" color="#1F2329" background="#FFFFFF"></navigation-bar>
+  <scroll-view class="content" scroll-y>
+    <view class="profile-content tabbar-content">
+      <view class="profile-header">
+        <view class="profile-avatar">{{user.emoji}}</view>
+        <view class="profile-info">
+          <view class="profile-name">{{user.name}}</view>
+          <view class="profile-sign ellipsis">{{user.signature}}</view>
+        </view>
+        <view wx:if="{{isLoggedIn}}" class="login-state">已登录</view>
+        <view wx:else class="login-state login-link" bindtap="goLogin">去登录</view>
+      </view>
+
+      <view class="section-head">
+        <view class="section-heading">
+          <text class="section-title">我会做的菜</text>
+          <text class="dish-count">{{dishes.length}} 道</text>
+        </view>
+        <view class="add-entry" bindtap="toggleAdd" hover-class="add-entry-hover" hover-stay-time="80">
+          {{showAdd ? '收起' : '+ 新增'}}
+        </view>
+      </view>
+
+      <view wx:if="{{showAdd}}" class="add-form">
+        <view class="form-label">选个图标</view>
+        <view class="emoji-row">
+          <view
+            class="emoji-item {{form.emoji === item ? 'active' : ''}}"
+            wx:for="{{emojiOptions}}"
+            wx:key="*this"
+            data-emoji="{{item}}"
+            bindtap="chooseEmoji"
+          >{{item}}</view>
+        </view>
+        <view class="form-label">菜名</view>
+        <input class="form-input" value="{{form.name}}" placeholder="例如：可乐鸡翅" placeholder-class="form-placeholder" data-field="name" bindinput="onFormInput" />
+        <view class="form-label">简介（选填）</view>
+        <input class="form-input" value="{{form.desc}}" placeholder="一句话介绍这道菜" placeholder-class="form-placeholder" data-field="desc" bindinput="onFormInput" />
+        <view class="primary-btn save-btn" bindtap="submitDish">保存菜品</view>
+      </view>
+
+      <view wx:if="{{dishes.length === 0}}" class="empty-card">
+        <view class="empty-emoji">🍳</view>
+        <view class="empty-title">还没有拿手菜</view>
+        <view class="empty-desc">点击“新增”，添加你的第一道菜</view>
+      </view>
+
+      <view class="dish-list">
+        <view class="dish-card" wx:for="{{dishes}}" wx:key="id" hover-class="dish-card-hover" hover-stay-time="80">
+          <view class="dish-pic" style="background: {{item.bg}};">
+            <text class="dish-emoji">{{item.emoji}}</text>
+          </view>
+          <view class="dish-body">
+            <view class="dish-title-row">
+              <view class="dish-name ellipsis">{{item.name}}</view>
+              <text wx:if="{{item.tag}}" class="dish-tag">{{item.tag}}</text>
+            </view>
+            <view class="dish-desc ellipsis">{{item.desc}}</view>
+          </view>
+          <view wx:if="{{isLoggedIn}}" class="delete-btn" data-id="{{item.id}}" catchtap="removeDish">删除</view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

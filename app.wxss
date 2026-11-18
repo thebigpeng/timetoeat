@@ -1,0 +1,152 @@
+/**app.wxss**/
+page {
+  height: 100vh;
+  background: #F6F7F9;
+  color: #1F2329;
+  font-size: 28rpx;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+}
+
+.tabbar-content {
+  padding-bottom: calc(130rpx + env(safe-area-inset-bottom));
+}
+
+.pad {
+  padding: 24rpx;
+}
+
+.card {
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: 0 8rpx 30rpx rgba(31, 35, 41, 0.04);
+}
+
+.card + .card {
+  margin-top: 20rpx;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.muted {
+  color: #8A8F99;
+  font-size: 24rpx;
+}
+
+.ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.primary-btn {
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: 44rpx;
+  background: linear-gradient(90deg, #FF8A3D, #FF5C35);
+  color: #FFFFFF;
+  font-size: 30rpx;
+  font-weight: 600;
+  box-shadow: 0 10rpx 24rpx rgba(255, 107, 53, 0.22);
+}
+
+.primary-btn.disabled {
+  background: #E5E7EB;
+  color: #A3A8B0;
+  box-shadow: none;
+}
+
+.ghost-btn {
+  height: 64rpx;
+  line-height: 62rpx;
+  padding: 0 28rpx;
+  border-radius: 32rpx;
+  border: 2rpx solid #E5E7EB;
+  color: #5A6069;
+  background: #FFFFFF;
+  font-size: 26rpx;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  background: #FFF1E8;
+  color: #FF6B35;
+  font-size: 20rpx;
+  line-height: 1.4;
+}
+
+.price {
+  color: #FF5C35;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.price-symbol {
+  font-size: 24rpx;
+  margin-right: 2rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+
+.empty {
+  padding: 120rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.empty-emoji {
+  font-size: 96rpx;
+  line-height: 1;
+  margin-bottom: 28rpx;
+}
+
+.empty-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 12rpx;
+}
+
+.empty-desc {
+  color: #8A8F99;
+  font-size: 24rpx;
+  margin-bottom: 36rpx;
+  text-align: center;
+}

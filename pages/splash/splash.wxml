@@ -1,0 +1,10 @@
+<view class="splash-page">
+  <image class="splash-cover" src="/assets/images/launch-cover-cats.jpg" mode="aspectFill" />
+  <view class="brand-block">
+    <view class="brand-eyebrow">好友蹭饭计划</view>
+    <view class="brand-title">你做啥</view>
+    <view class="brand-title brand-title-accent">我吃啥</view>
+    <view class="brand-subtitle">你负责下厨，我负责捧场</view>
+  </view>
+  <view class="splash-footer">好友做饭 · 快乐蹭饭</view>
+</view>

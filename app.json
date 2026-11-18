@@ -1,0 +1,39 @@
+{
+  "pages": [
+    "pages/splash/splash",
+    "pages/index/index",
+    "pages/messages/messages",
+    "pages/profile/profile",
+    "pages/chat/chat",
+    "pages/login/login"
+  ],
+  "window": {
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom",
+    "backgroundColor": "#F6F7F9"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#8A8F99",
+    "selectedColor": "#FF6B35",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "好友"
+      },
+      {
+        "pagePath": "pages/messages/messages",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,83 @@
+<!--index.wxml-->
+<view class="page">
+  <navigation-bar title="好友" back="{{false}}" color="#1F2329" background="#FFFFFF"></navigation-bar>
+  <scroll-view class="content" scroll-y>
+    <view class="friend-content tabbar-content">
+      <view class="me-card" bindtap="goMyProfile">
+        <view class="me-avatar">{{currentUser.emoji}}</view>
+        <view class="grow">
+          <view class="me-name">{{isLoggedIn && user ? user.nickName : currentUser.name}}</view>
+          <view class="me-sign">{{isLoggedIn ? '我的主页 · 管理我会做的菜' : '点击登录，管理我会做的菜'}}</view>
+        </view>
+        <text class="arrow">›</text>
+      </view>
+
+      <view class="search-card">
+        <view class="search-box">
+          <text class="search-icon">🔍</text>
+          <input
+            class="search-input"
+            value="{{keyword}}"
+            placeholder="搜索备注、昵称或 ID"
+            placeholder-class="search-placeholder"
+            bindinput="onKeywordInput"
+          />
+        </view>
+      </view>
+
+      <view wx:if="{{searchResults.length > 0}}" class="result-section">
+        <view class="section-head">
+          <text class="section-title">搜索结果</text>
+          <text class="muted">可添加</text>
+        </view>
+        <view class="result-card" wx:for="{{searchResults}}" wx:key="id">
+          <view class="friend-avatar">{{item.emoji}}</view>
+          <view class="grow">
+            <view class="row between">
+              <text class="friend-name">{{item.name}}</text>
+              <text class="dish-count">会做 {{item.dishCount}} 道</text>
+            </view>
+            <view class="friend-sign ellipsis">{{item.signature}}</view>
+          </view>
+          <view class="add-friend-btn" data-id="{{item.id}}" catchtap="onAddFriend">添加</view>
+        </view>
+      </view>
+
+      <view class="section-head">
+        <text class="section-title">我的好友</text>
+        <text class="muted">{{friends.length}} 位</text>
+      </view>
+
+      <view wx:if="{{friends.length === 0}}" class="empty">
+        <view class="empty-emoji">🔍</view>
+        <view class="empty-title">没有找到好友</view>
+        <view class="empty-desc">换个关键词试试，或邀请微信好友</view>
+      </view>
+
+      <view class="friend-card" wx:for="{{friends}}" wx:key="id" data-id="{{item.id}}" bindtap="goChat" hover-class="friend-hover" hover-stay-time="80">
+        <view class="friend-avatar">{{item.emoji}}</view>
+        <view class="grow">
+          <view class="row between">
+            <text class="friend-name editable-name" data-id="{{item.id}}" catchtap="onEditRemark" aria-role="button" aria-label="修改好友备注：{{item.displayName}}">{{item.displayName}}</text>
+            <text class="dish-count">会做 {{item.dishCount}} 道</text>
+          </view>
+          <view class="friend-sign ellipsis">{{item.signature}}</view>
+        </view>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </scroll-view>
+  <view wx:if="{{remarkFriend}}" class="remark-mask" catchtap="closeRemark" catchtouchmove="stopPropagation">
+    <view class="remark-dialog" catchtap="stopPropagation">
+      <view class="remark-title">修改好友备注</view>
+      <view class="remark-original">原昵称：{{remarkFriend.name}}</view>
+      <input class="remark-input" value="{{remarkDraft}}" maxlength="64" placeholder="输入备注，留空可清除" focus="{{true}}" disabled="{{savingRemark}}" bindinput="onRemarkInput" bindconfirm="saveRemark" confirm-type="done" aria-label="好友备注" />
+      <view class="remark-help">仅自己可见，最多 32 个字符</view>
+      <view wx:if="{{remarkError}}" class="remark-error">{{remarkError}}</view>
+      <view class="remark-actions">
+        <button class="remark-cancel" disabled="{{savingRemark}}" bindtap="closeRemark">取消</button>
+        <button class="remark-save" loading="{{savingRemark}}" disabled="{{savingRemark}}" bindtap="saveRemark">保存</button>
+      </view>
+    </view>
+  </view>
+</view>

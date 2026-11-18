@@ -1,0 +1,187 @@
+.friend-content {
+  padding: 24rpx 24rpx 220rpx;
+}
+
+.me-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 28rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #FF9A45, #FF5C35);
+  color: #FFFFFF;
+  box-shadow: 0 14rpx 32rpx rgba(255, 107, 53, 0.22);
+}
+
+.me-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 48rpx;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 50rpx;
+  line-height: 96rpx;
+  text-align: center;
+  margin-right: 22rpx;
+  flex: none;
+}
+
+.me-name {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.me-sign {
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  opacity: 0.9;
+}
+
+.arrow {
+  color: #B9BDC4;
+  font-size: 40rpx;
+  line-height: 1;
+  margin-left: 12rpx;
+}
+
+.me-card .arrow {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.search-card {
+  margin-top: 24rpx;
+}
+
+.result-section {
+  margin-top: 8rpx;
+}
+
+.result-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 24rpx;
+  background: #FFF9F4;
+  border: 2rpx solid #FFE4D0;
+  border-radius: 22rpx;
+  margin-bottom: 16rpx;
+}
+
+.add-friend-btn {
+  margin-left: 16rpx;
+  padding: 10rpx 22rpx;
+  border-radius: 20rpx;
+  background: #FF6B35;
+  color: #FFFFFF;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.search-box {
+  height: 84rpx;
+  border-radius: 42rpx;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 28rpx;
+  box-shadow: 0 8rpx 24rpx rgba(31, 35, 41, 0.04);
+}
+
+.search-icon {
+  font-size: 28rpx;
+  margin-right: 14rpx;
+}
+
+.search-input {
+  flex: 1;
+  font-size: 27rpx;
+  color: #1F2329;
+}
+
+.search-placeholder {
+  color: #A7ABB3;
+}
+
+.section-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx 8rpx 18rpx;
+}
+
+.friend-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 24rpx;
+  background: #FFFFFF;
+  border-radius: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 8rpx 30rpx rgba(31, 35, 41, 0.04);
+}
+
+.friend-hover {
+  background: #FAFAFB;
+}
+
+.friend-avatar {
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 28rpx;
+  background: #F4F5F7;
+  font-size: 48rpx;
+  line-height: 92rpx;
+  text-align: center;
+  margin-right: 20rpx;
+  flex: none;
+}
+
+.friend-name {
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.dish-count {
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  color: #FF6B35;
+  font-size: 22rpx;
+}
+
+.friend-sign {
+  margin-top: 10rpx;
+  color: #8A8F99;
+  font-size: 23rpx;
+}
+
+.editable-name {
+  min-width: 0;
+  padding: 10rpx 0;
+  word-break: break-all;
+}
+.remark-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.remark-dialog {
+  width: 600rpx;
+  box-sizing: border-box;
+  padding: 36rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+}
+.remark-title { font-size: 32rpx; font-weight: 600; }
+.remark-original { margin-top: 16rpx; color: #666; word-break: break-all; }
+.remark-input { margin-top: 28rpx; padding: 20rpx; border-radius: 12rpx; background: #F6F7F9; }
+.remark-help { margin-top: 12rpx; font-size: 24rpx; color: #8A8F99; }
+.remark-error { margin-top: 12rpx; font-size: 24rpx; color: #C73636; }
+.remark-actions { display: flex; gap: 20rpx; margin-top: 32rpx; }
+.remark-actions button { flex: 1; margin: 0; font-size: 28rpx; border-radius: 16rpx; }
+.remark-save { background: #FF6B35; color: #FFFFFF; }
+.remark-cancel { background: #F6F7F9; color: #555; }
