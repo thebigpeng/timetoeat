@@ -1,6 +1,6 @@
 # TimeToEat C++ 后端
 
-与 `../timetoeat` 配套的 C++17 HTTP 服务。使用 cpp-httplib、nlohmann/json、MariaDB Connector/C（连接 MySQL）、OpenSSL、libcurl；Docker 内编译运行，Windows 不需要单独安装 C++ 依赖。
+与上级目录的小程序配套的 C++17 HTTP 服务。使用 cpp-httplib、nlohmann/json、MariaDB Connector/C（连接 MySQL）、OpenSSL、libcurl；Docker 内编译运行，Windows 不需要单独安装 C++ 依赖。
 
 ## 启动与连接
 
@@ -14,10 +14,13 @@
 - 不要使用 `docker compose down -v`，这会删除数据库卷。
 - `sql/001-schema.sql`、`002-catalog.sql` 仅在空数据卷首次启动时运行。后续改表应另写迁移 SQL，不要以删除数据卷代替迁移。
 - `sql/003-friend-remarks.sql` 是可重复执行的备注迁移；新数据库初始化时自动运行，`start.ps1` 也会在 MySQL 就绪后对旧数据库执行，再重建 API。手动部署须先将该 SQL 导入现有数据库，不能仅重建 API。
+- `sql/004-dish-responses.sql` 是可重复执行的点菜状态迁移；旧点菜回填为已接受。`start.ps1` 会在 MySQL 就绪后自动执行，手动部署需先导入再重建 API。
+- `sql/005-dish-response-activity.sql` 新增可空的 `responded_at` 回复时间，可重复执行，启动脚本自动应用。旧记录保留 NULL；新回复更新会话预览、时间和排序，聊天消息仍按原发送顺序展示。
+- `sql/006-profile-and-enjoy.sql` 新增用户性别、菜菜分和点菜完成时间，扩展点菜状态为 `enjoyed`，可重复执行并由启动脚本自动应用。历史点菜不补发积分。
 
 ## 小程序联调
 
-`../timetoeat/utils/config.js` 已配置 `baseUrl: http://127.0.0.1:8080` 和 `testLogin: true`。开发者工具本地配置 `urlCheck` 已关闭，供本机 HTTP 调试。
+`../utils/config.js` 已配置 `baseUrl: http://127.0.0.1:8080` 和 `testLogin: true`。开发者工具本地配置 `urlCheck` 已关闭，供本机 HTTP 调试。
 
 1. 在开发者工具编译小程序，点击首页“未登录”。
 2. 使用 `tester-001` 和昵称登录。只有后端事务提交成功才显示登录成功，`users` 新增一行。
@@ -26,6 +29,7 @@
 5. 从“我的 → 切换账号 / 退出登录”改用 `tester-002` 注册。搜索第一个用户的昵称或 ID，添加好友。
 6. 聊天页面可发送文字、表情、想吃的菜、催饭；切回接收方打开聊天，才标记为已读。
 7. 两个开发者工具实例使用不同测试账号可联调；聊天页每 3 秒刷新、消息页每 5 秒刷新，隐藏时停止。历史每页 50 条，点击“查看更早消息”继续加载。
+8. 已加载的待回复点菜每次轮询单独回查状态（每批最多 100 条），超过最新 50 条的旧卡片也会同步。回复会成为最新会话动态；之后发来的聊天消息会正常替换预览。回复不会插入额外聊天消息，未读数量仍按收到的消息计数。
 
 测试账号是本地调试身份，任何知道该账号名的人都能登录；当前 API 和数据库均只发布到本机回环地址。不能将开启测试登录的服务直接暴露公网。
 
@@ -42,7 +46,8 @@
 | `dishes` | 菜品主表。`owner_id IS NULL` 为公共目录，否则为用户原创；金额用整数分。软删除保留消息外键。首次导入现有菜单的 18 道菜，不伪造用户或好友。 |
 | `user_dishes` | 用户与“会做的菜”的多对多关联，联合主键去重。新用户初始为空；新增原创菜同时插入两表；选择公共菜只插入关联。 |
 | `friendships` | 双向好友关系只存一行，小 ID 存 `user_low`，大 ID 存 `user_high`，联合主键去重。`remark_by_low` 是小 ID 用户对大 ID 好友的备注，`remark_by_high` 是反方向备注，均为 VARCHAR(32)、默认空字符串。保持现有产品的直接添加行为，未实现审批。 |
-| `messages` | 发送者、接收者、类型、正文、菜品引用及菜名/emoji 快照、发送时间、已读时间。四种类型：text/sticker/dish/nudge。`(sender_id,client_id)` 唯一，支持网络重试去重。收发双方索引用于聊天分页。 |
+| `messages` | 发送者、接收者、类型、正文、菜品引用及菜名/emoji 快照、发送时间、已读时间。四种类型：text/sticker/dish/nudge。点菜消息用 `order_status`（pending/accepted/rejected/enjoyed）、`reject_reason` 和 `enjoyed_at` 保存回复与完成状态；其他消息状态为空。`(sender_id,client_id)` 唯一，支持网络重试去重。收发双方索引用于聊天分页。 |
+| `users` | 账号除昵称、头像、emoji 和签名外，新增 `gender`（unknown/male/female，默认 unknown）与 `caicai_score`（默认 0）。 |
 
 ## 读写逻辑与权限
 
@@ -50,7 +55,8 @@
 - 用户：已登录用户可以按昵称或 ID 搜索公开资料，最多返回 50 个。不会返回其他用户的 token、微信 openid 或登录身份。
 - 好友备注：点击好友列表的名字编辑，展示为“备注（原昵称）”，空备注只显示原昵称。备注是私有的关系数据，不修改 users.nickname；好友列表只返回当前用户设置的 remark，不返回对方备注。保存上限 32 个 Unicode 字符，拒绝控制字符，空字符串清除；好友搜索支持备注/原昵称/ID，消息列表及聊天标题同步显示。取消不保存，失败保留草稿。双方同时修改各自备注不会互相覆盖。
 - 菜品：已登录用户可看公开的“会做的菜”。新增原创菜与归属关系在一个事务内写入。删除只能操作自己的关联；原创菜同时软删除，公共菜不删除公共目录。
-- 聊天：必须是好友才能发消息或读该会话；发送者始终由 token 决定，忽略客户端 `fromUserId`。想吃/催饭只能引用接收方仍在提供的菜，菜名快照取自数据库。
+- 聊天：必须是好友才能发消息或读该会话；发送者始终由 token 决定，忽略客户端 `fromUserId`。想吃只能引用接收方仍在提供的菜，菜名快照取自数据库；新点菜初始为待回应，只有接收方可回复一次“可以做”（accepted）或“做不了”（rejected）及原因。点菜方仅能在原点菜已被接受后催饭，催饭请求必须携带对应 `orderId`，服务端校验消息方向、状态、好友关系和菜品是否仍提供。
+- 已享用与菜菜分：只有点菜人能把已接受的点菜标记为 `enjoyed`；事务内锁定原点菜并把厨师的 `caicai_score` 加 3。重复确认返回同一完成状态且不重复加分，完成后不能继续催饭。历史点菜不补分。个人主页可设置性别 unknown/male/female，厨师形象卡按性别展示并展示菜菜分。
 - 重试：客户端为一次发送保留 `clientId`，超时后重试复用；唯一索引避免重复消息。请求标识不得用于另一接收方或消息类型。
 - 已读：服务端只更新“当前用户收到、来自指定好友、ID 不大于页面已看到的 throughId”的消息，不允许冒充对方已读。
 - 历史：软删除菜品后，旧消息仍显示发送时快照。消息分页以 ID 为游标，最新会话摘要和未读数量单独查询。
@@ -65,7 +71,8 @@
 | POST | `/api/auth/test` | `{account,nickName}`，需 `ALLOW_TEST_LOGIN=true` |
 | POST | `/api/auth/wechat` | `{code,nickName,avatarUrl}` |
 | POST | `/api/auth/logout` | 撤销当前会话 |
-| GET | `/api/me` | 当前用户资料 |
+| GET | `/api/me` | 当前用户资料，含性别与菜菜分 |
+| PUT | `/api/me/gender` | `{gender:'unknown'\|'male'\|'female'}` 设置厨师形象性别 |
 | GET | `/api/users?q=...` | 搜索用户 |
 | GET / POST | `/api/friends` | 查询好友 / `{userId}` 添加好友 |
 | PUT | `/api/friends/:userId/remark` | `{remark}` 设置当前用户对该好友的备注；空字符串清除，必须已有好友关系 |
@@ -74,9 +81,12 @@
 | POST | `/api/dishes` | `{name,desc,emoji}` 新增原创菜 |
 | POST | `/api/dishes/select` | `{dishId}` 将公共菜加入“我会做” |
 | DELETE | `/api/dishes/:id` | 移除自己的菜品 |
-| GET | `/api/conversations` | 最新消息和未读数 |
+| GET | `/api/conversations` | 最新发送/回复动态和未读数；last.activityAt 为会话排序与展示时间 |
 | GET | `/api/messages?peer=ID&before=ID` | 最新/历史消息，返回 messages 与 hasMore |
-| POST | `/api/messages` | `{toUserId,clientId,type,content,dishId?}` |
+| POST | `/api/messages` | `{toUserId,clientId,type,content?,dishId?,orderId?}`；催饭必须携带已接受点菜的 `orderId`，菜品及文案从原单对应菜品生成；如仍传 dishId，必须与原单一致，且原菜品仍在供应 |
+| POST | `/api/messages/orders/status` | `{peerId,messageIds}`，1–100 个字符串 ID，只返回当前用户与该好友会话中的点菜记录 |
+| POST | `/api/messages/:id/response` | `{action:'accept'\|'reject',reason?}` 回复自己收到的待处理点菜，返回更新后的消息 |
+| POST | `/api/messages/:id/enjoy` | 点菜人确认已完成享用；幂等，首次完成为厨师增加 3 菜菜分 |
 | POST | `/api/messages/read` | `{peerId,throughId}` 更新已读水位 |
 
 ## 测试与上线边界

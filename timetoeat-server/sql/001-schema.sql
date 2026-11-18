@@ -7,6 +7,8 @@ CREATE TABLE users (
   avatar_url VARCHAR(1024) NOT NULL DEFAULT '',
   emoji VARCHAR(32) NOT NULL DEFAULT '😀',
   signature VARCHAR(255) NOT NULL DEFAULT '欢迎来蹭饭',
+  gender ENUM('unknown','male','female') NOT NULL DEFAULT 'unknown',
+  caicai_score INT UNSIGNED NOT NULL DEFAULT 0,
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   last_login_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 ) ENGINE=InnoDB;
@@ -55,6 +57,10 @@ CREATE TABLE messages (
   dish_id VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
   dish_name VARCHAR(100) NOT NULL DEFAULT '',
   dish_emoji VARCHAR(32) NOT NULL DEFAULT '',
+  order_status ENUM('pending','accepted','rejected','enjoyed') NULL,
+  reject_reason VARCHAR(100) NOT NULL DEFAULT '',
+  responded_at DATETIME(6) NULL,
+  enjoyed_at DATETIME(6) NULL,
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   read_at DATETIME(3) NULL,
   UNIQUE KEY message_retry (sender_id,client_id),

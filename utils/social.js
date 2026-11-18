@@ -25,6 +25,16 @@ module.exports = {
     return result
   },
   sendMessage: message => api.request('/api/messages', 'POST', message).then(decorateMessage),
+  async getOrderStatuses(peerId, messageIds) {
+    let result = []
+    for (let i = 0; i < messageIds.length; i += 100) {
+      const batch = await api.request('/api/messages/orders/status', 'POST', { peerId, messageIds: messageIds.slice(i, i + 100) })
+      result = result.concat(batch.map(decorateMessage))
+    }
+    return result
+  },
+  respondToDish: (messageId, action, reason) => api.request('/api/messages/' + encodeURIComponent(messageId) + '/response', 'POST', { action, reason: reason || '' }).then(decorateMessage),
+  enjoyDish: messageId => api.request('/api/messages/' + encodeURIComponent(messageId) + '/enjoy', 'POST').then(decorateMessage),
   markChatRead: (peerId, throughId) => api.request('/api/messages/read', 'POST', { peerId, throughId }),
   decorateMessage, clientId
 }

@@ -4,6 +4,7 @@
     "pages/index/index",
     "pages/messages/messages",
     "pages/profile/profile",
+    "pages/account/account",
     "pages/chat/chat",
     "pages/login/login"
   ],

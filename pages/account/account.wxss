@@ -1,0 +1,95 @@
+.account-content {
+  padding: 24rpx 24rpx 40rpx;
+}
+
+.user-card,
+.action-card {
+  border: 2rpx solid #EEF0F2;
+  border-radius: 16rpx;
+  background: #FFFFFF;
+}
+
+.user-card {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 28rpx 24rpx;
+}
+
+.user-avatar {
+  flex-shrink: 0;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: #FFF3E6;
+  font-size: 52rpx;
+  line-height: 96rpx;
+  text-align: center;
+}
+
+.user-card .grow {
+  margin-left: 20rpx;
+}
+
+.user-name {
+  color: #1F2329;
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.user-meta {
+  margin-top: 8rpx;
+  color: #8A8F99;
+  font-size: 23rpx;
+}
+
+.action-card {
+  margin-top: 24rpx;
+  padding: 0 24rpx;
+}
+
+.action-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  min-height: 116rpx;
+  border-bottom: 2rpx solid #F2F3F5;
+}
+
+.action-row:last-child {
+  border-bottom: none;
+}
+
+.action-row-hover {
+  background: #FAFAFA;
+}
+
+.action-title {
+  color: #1F2329;
+  font-size: 28rpx;
+}
+
+.action-desc {
+  margin-top: 8rpx;
+  color: #A0A5AD;
+  font-size: 22rpx;
+}
+
+.logout-title {
+  color: #C73636;
+}
+
+.action-arrow {
+  margin-left: 16rpx;
+  color: #B9BDC4;
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+.account-note {
+  margin-top: 20rpx;
+  padding: 0 8rpx;
+  color: #A0A5AD;
+  font-size: 22rpx;
+  line-height: 1.6;
+}

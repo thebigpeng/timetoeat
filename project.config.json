@@ -17,7 +17,12 @@
   "projectname": "你做啥我吃啥",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "timetoeat-server"
+      }
+    ],
     "include": []
   },
   "appid": "wx26b2bac2e7c37254",

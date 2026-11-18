@@ -22,8 +22,12 @@ Page({
       const [friends, summaries] = await Promise.all([social.getFriends(), social.getConversations()])
       const conversations = friends.map(friend => {
         const summary = summaries.find(s => s.peerId === friend.id)
-        const last = summary && social.decorateMessage(summary.last)
-        return Object.assign({}, friend, { preview: last ? last.content : '还没有聊天，打个招呼吧',
+        const last = summary && social.decorateMessage(Object.assign({}, summary.last, { createdAt: summary.last.activityAt || summary.last.createdAt }))
+        let preview = last ? last.content : '还没有聊天，打个招呼吧'
+        if (last && last.type === 'dish' && last.orderStatus === 'accepted') preview = '[点菜] ' + last.dishName + ' · 可以做'
+        if (last && last.type === 'dish' && last.orderStatus === 'rejected') preview = '[点菜] ' + last.dishName + ' · 做不了'
+        if (last && last.type === 'dish' && last.orderStatus === 'enjoyed') preview = '[点菜] ' + last.dishName + ' · 已享用'
+        return Object.assign({}, friend, { preview,
           timeText: last ? last.timeText : '', lastAt: last ? last.createdAt : 0, unreadCount: summary ? summary.unreadCount : 0 })
       }).sort((a, b) => b.lastAt - a.lastAt)
       if (this.visible && auth.getUser() && auth.getUser().id === userId) this.setData({ conversations })

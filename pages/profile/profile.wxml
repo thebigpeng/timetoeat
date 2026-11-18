@@ -3,14 +3,37 @@
   <navigation-bar title="{{titleText}}" back="{{false}}" color="#1F2329" background="#FFFFFF"></navigation-bar>
   <scroll-view class="content" scroll-y>
     <view class="profile-content tabbar-content">
-      <view class="profile-header">
-        <view class="profile-avatar">{{user.emoji}}</view>
-        <view class="profile-info">
-          <view class="profile-name">{{user.name}}</view>
-          <view class="profile-sign ellipsis">{{user.signature}}</view>
+      <view class="chef-card">
+        <view class="chef-stage" bindtap="onAvatarTap" hover-class="chef-stage-hover" hover-stay-time="80" aria-role="button" aria-label="进入账号设置">
+          <text class="chef-steam steam-one">⌇</text>
+          <text class="chef-steam steam-two">⌇</text>
+          <text class="chef-sparkle">✦</text>
+          <text class="chef-emoji">{{chefEmoji}}</text>
+          <view class="chef-badge">{{user.emoji}}</view>
         </view>
-        <view wx:if="{{isLoggedIn}}" class="login-state">已登录</view>
-        <view wx:else class="login-state login-link" bindtap="goLogin">去登录</view>
+        <view class="chef-info">
+          <view class="chef-name">{{user.name}}</view>
+          <view class="chef-role ellipsis">{{chefLabel}}厨师 · {{user.signature}}</view>
+          <view wx:if="{{isLoggedIn}}" class="gender-options">
+            <view
+              class="gender-option {{user.gender === item.value ? 'active' : ''}}"
+              wx:for="{{genderOptions}}"
+              wx:key="value"
+              data-gender="{{item.value}}"
+              bindtap="onGenderChange"
+            >{{item.label}}</view>
+          </view>
+          <view wx:else class="gender-hint">登录后设置厨师形象</view>
+        </view>
+        <view class="score-pill">
+          <text class="score-label">菜菜分</text>
+          <text class="score-value">{{user.caicaiScore || 0}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{!isLoggedIn}}" class="profile-login-entry" bindtap="goLogin" hover-class="profile-login-hover" hover-stay-time="80">
+        <text>登录 / 注册，开始和好友蹭饭</text>
+        <text class="login-arrow">›</text>
       </view>
 
       <view class="section-head">

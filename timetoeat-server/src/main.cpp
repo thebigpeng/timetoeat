@@ -57,10 +57,11 @@ std::string actor(Db &db, const Request &req) {
 }
 json userJson(const json &row) {
     return {{"id", row["id"]}, {"name", row["nickname"]}, {"nickName", row["nickname"]},
-            {"emoji", row["emoji"]}, {"signature", row["signature"]}, {"avatarUrl", row["avatar_url"]}};
+            {"emoji", row["emoji"]}, {"signature", row["signature"]}, {"avatarUrl", row["avatar_url"]},
+            {"gender", row["gender"]}, {"caicaiScore",std::stoi(row["caicai_score"].get<std::string>())}};
 }
 json userById(Db &db, const std::string &id) {
-    auto rows = db.query("SELECT id,nickname,emoji,signature,avatar_url FROM users WHERE id=?", {id});
+    auto rows = db.query("SELECT id,nickname,emoji,signature,avatar_url,gender,caicai_score FROM users WHERE id=?", {id});
     if (rows.empty()) throw ApiError(404, "用户不存在");
     return userJson(rows[0]);
 }
@@ -77,12 +78,13 @@ json dishes(Db &db, const std::string &user) {
         {"isCustom",!r["owner_id"].is_null()},{"tag","我会做"},{"bg","#FFF0DC"}});
     return result;
 }
-const std::string messageColumns = "id,sender_id,recipient_id,client_id,type,content,dish_id,dish_name,dish_emoji,CAST(UNIX_TIMESTAMP(created_at)*1000 AS UNSIGNED) AS created_ms,CAST(UNIX_TIMESTAMP(read_at)*1000 AS UNSIGNED) AS read_ms";
+const std::string messageColumns = "id,sender_id,recipient_id,client_id,type,content,dish_id,dish_name,dish_emoji,order_status,reject_reason,CAST(UNIX_TIMESTAMP(created_at)*1000 AS UNSIGNED) AS created_ms,CAST(UNIX_TIMESTAMP(read_at)*1000 AS UNSIGNED) AS read_ms,FLOOR(UNIX_TIMESTAMP(COALESCE(enjoyed_at,responded_at,created_at))*1000) AS activity_ms";
 json messageJson(const json &r) {
     return {{"id",r["id"]},{"fromUserId",r["sender_id"]},{"toUserId",r["recipient_id"]},
         {"clientId",r["client_id"]},{"type",r["type"]},{"content",r["content"]},
         {"dishId",r["dish_id"]},{"dishName",r["dish_name"]},{"dishEmoji",r["dish_emoji"]},
-        {"createdAt",std::stoll(r["created_ms"].get<std::string>())},{"read",!r["read_ms"].is_null()}};
+        {"orderStatus",r["order_status"]},{"rejectReason",r["reject_reason"]},
+        {"createdAt",std::stoll(r["created_ms"].get<std::string>())},{"activityAt",std::stoll(r["activity_ms"].get<std::string>())},{"read",!r["read_ms"].is_null()}};
 }
 size_t receiveCurl(char *data, size_t size, size_t n, void *out) {
     auto &text = *static_cast<std::string*>(out);
@@ -170,17 +172,23 @@ int main() {
         actor(db,r); db.query("DELETE FROM sessions WHERE token_hash=?", {tokenHash(r)}); return json{{"ok",true}};
     }));
     server.Get("/api/me", handle([](Db &db,const Request &r,const json&) { return userById(db,actor(db,r)); }));
+    server.Put("/api/me/gender", handle([](Db &db,const Request &r,const json &b) {
+        auto me=actor(db,r), gender=field(b,"gender",8);
+        if(gender!="unknown"&&gender!="male"&&gender!="female") throw ApiError(400,"性别取值不正确");
+        db.query("UPDATE users SET gender=? WHERE id=?",{gender,me});
+        return userById(db,me);
+    }));
     server.Get("/api/users", handle([](Db &db,const Request &r,const json&) {
         auto me = actor(db,r); auto key = r.get_param_value("q");
         if (key.size()>192) throw ApiError(400,"搜索内容过长");
-        auto rows = db.query("SELECT id,nickname,emoji,signature,avatar_url FROM users WHERE id<>? AND (LOCATE(?,nickname)>0 OR id=?) ORDER BY id LIMIT 50", {me,key,key});
+        auto rows = db.query("SELECT id,nickname,emoji,signature,avatar_url,gender,caicai_score FROM users WHERE id<>? AND (LOCATE(?,nickname)>0 OR id=?) ORDER BY id LIMIT 50", {me,key,key});
         json result=json::array();
         for (auto &u:rows) result.push_back(userJson(u));
         return result;
     }));
     server.Get("/api/friends", handle([](Db &db,const Request &r,const json&) {
         auto me=actor(db,r);
-        auto rows=db.query("SELECT u.id,u.nickname,u.emoji,u.signature,u.avatar_url,IF(f.user_low=?,f.remark_by_low,f.remark_by_high) AS remark FROM friendships f JOIN users u ON u.id=IF(f.user_low=?,f.user_high,f.user_low) WHERE f.user_low=? OR f.user_high=? ORDER BY u.id", {me,me,me,me});
+        auto rows=db.query("SELECT u.id,u.nickname,u.emoji,u.signature,u.avatar_url,u.gender,u.caicai_score,IF(f.user_low=?,f.remark_by_low,f.remark_by_high) AS remark FROM friendships f JOIN users u ON u.id=IF(f.user_low=?,f.user_high,f.user_low) WHERE f.user_low=? OR f.user_high=? ORDER BY u.id", {me,me,me,me});
         json result=json::array();
         for(auto &u:rows) { auto user=userJson(u); user["remark"]=u["remark"]; result.push_back(user); }
         return result;
@@ -240,9 +248,26 @@ int main() {
         json result=json::array(); for(auto it=rows.rbegin();it!=rows.rend();++it) result.push_back(messageJson(*it));
         return json{{"messages",result},{"hasMore",more}};
     }));
+    server.Post("/api/messages/orders/status", handle([](Db &db,const Request &r,const json &b) {
+        auto me=actor(db,r), peer=field(b,"peerId",19);
+        friendCheck(db,me,peer);
+        if(!b.contains("messageIds") || !b["messageIds"].is_array() || b["messageIds"].empty() || b["messageIds"].size()>100)
+            throw ApiError(400,"点菜 ID 列表限 1–100 条");
+        std::vector<std::string> params{me,peer,peer,me};
+        std::string placeholders;
+        for(const auto &value:b["messageIds"]) {
+            if(!value.is_string()) throw ApiError(400,"点菜 ID 必须为字符串");
+            auto id=value.get<std::string>(); validId(id);
+            if(!placeholders.empty()) placeholders+=",";
+            placeholders+="?"; params.push_back(id);
+        }
+        auto rows=db.query("SELECT "+messageColumns+" FROM messages WHERE ((sender_id=? AND recipient_id=?) OR (sender_id=? AND recipient_id=?)) AND type='dish' AND id IN ("+placeholders+")",params);
+        json result=json::array(); for(auto &row:rows) result.push_back(messageJson(row));
+        return result;
+    }));
     server.Get("/api/conversations", handle([](Db &db,const Request &r,const json&) {
         auto me=actor(db,r);
-        auto rows=db.query("SELECT "+messageColumns+" FROM messages WHERE id IN (SELECT MAX(id) FROM messages WHERE sender_id=? OR recipient_id=? GROUP BY IF(sender_id=?,recipient_id,sender_id)) ORDER BY id DESC",{me,me,me});
+        auto rows=db.query("SELECT "+messageColumns+" FROM (SELECT m.*,ROW_NUMBER() OVER (PARTITION BY IF(sender_id=?,recipient_id,sender_id) ORDER BY COALESCE(enjoyed_at,responded_at,created_at) DESC,(responded_at IS NOT NULL) DESC,id DESC) AS position FROM messages m WHERE sender_id=? OR recipient_id=?) ranked WHERE position=1 ORDER BY COALESCE(enjoyed_at,responded_at,created_at) DESC,id DESC",{me,me,me});
         auto counts=db.query("SELECT sender_id,COUNT(*) AS n FROM messages WHERE recipient_id=? AND read_at IS NULL GROUP BY sender_id",{me});
         json result=json::array();
         for(auto &row:rows) {
@@ -265,17 +290,63 @@ int main() {
             tx.commit(); return messageJson(existing[0]);
         }
         if(type=="dish"||type=="nudge") {
-            dishId=field(b,"dishId",64);
+            if(type=="dish") dishId=field(b,"dishId",64);
+            else {
+                auto orderId=field(b,"orderId",19); validId(orderId);
+                auto orders=db.query("SELECT sender_id,recipient_id,order_status,dish_id FROM messages WHERE id=? AND type='dish' FOR UPDATE",{orderId});
+                if(orders.empty()) throw ApiError(404,"对应的点菜消息不存在");
+                if(orders[0]["sender_id"]!=me || orders[0]["recipient_id"]!=peer) throw ApiError(403,"只能催自己发出的点菜");
+                if(orders[0]["order_status"]!="accepted") throw ApiError(409,"好友选择可以做后才能催一下");
+                if(orders[0]["dish_id"].is_null()) throw ApiError(400,"原点菜已无可用菜品");
+                dishId=orders[0]["dish_id"];
+                if(b.contains("dishId") && field(b,"dishId",64)!=dishId) throw ApiError(400,"催饭菜品与原点菜不一致");
+            }
             auto rows=db.query("SELECT d.name,d.emoji FROM dishes d JOIN user_dishes ud ON ud.dish_id=d.id WHERE d.id=? AND ud.user_id=? AND d.deleted_at IS NULL FOR UPDATE",{dishId,peer});
             if(rows.empty()) throw ApiError(400,"好友已不再提供这道菜");
             dishName=rows[0]["name"]; dishEmoji=rows[0]["emoji"];
-            if(type=="dish") content="我想吃："+dishName;
-            else if(content.empty()) content="催一下"+dishName+"～";
+            content=type=="dish" ? "我想吃："+dishName : "催一下"+dishName+"，肚子已经开始抗议啦～";
         }
-        db.query("INSERT INTO messages(sender_id,recipient_id,client_id,type,content,dish_id,dish_name,dish_emoji) VALUES(?,?,?,?,?,NULLIF(?,''),?,?) ON DUPLICATE KEY UPDATE id=id",{me,peer,client,type,content,dishId,dishName,dishEmoji});
+        auto orderStatus=type=="dish"?"pending":"";
+        db.query("INSERT INTO messages(sender_id,recipient_id,client_id,type,content,dish_id,dish_name,dish_emoji,order_status) VALUES(?,?,?,?,?,NULLIF(?,''),?,?,NULLIF(?,'')) ON DUPLICATE KEY UPDATE id=id",{me,peer,client,type,content,dishId,dishName,dishEmoji,orderStatus});
         // Current read sees the winning concurrent insert under MySQL REPEATABLE READ.
         auto message=messageJson(db.query("SELECT "+messageColumns+" FROM messages WHERE sender_id=? AND client_id=? FOR UPDATE",{me,client})[0]);
         if(message["toUserId"]!=peer || message["type"]!=type) throw ApiError(409,"消息请求标识已被使用");
+        tx.commit(); return message;
+    }));
+    server.Post(R"(/api/messages/([1-9][0-9]{0,18})/response)", handle([](Db &db,const Request &r,const json &b) {
+        auto me=actor(db,r); std::string id=r.matches[1];
+        auto action=field(b,"action",8), reason=field(b,"reason",100,false);
+        if(action!="accept"&&action!="reject") throw ApiError(400,"点菜回复类型不支持");
+        auto begin=reason.find_first_not_of(" \t\r\n");
+        reason=begin==std::string::npos ? "" : reason.substr(begin,reason.find_last_not_of(" \t\r\n")-begin+1);
+        if(std::any_of(reason.begin(),reason.end(),[](unsigned char c) { return c<32 || c==127; })) throw ApiError(400,"原因不能包含换行或控制字符");
+        Transaction tx(db);
+        auto rows=db.query("SELECT "+messageColumns+" FROM messages WHERE id=? AND type='dish' FOR UPDATE",{id});
+        if(rows.empty()) throw ApiError(404,"点菜消息不存在");
+        if(rows[0]["recipient_id"]!=me) throw ApiError(403,"只能回复自己收到的点菜");
+        if(rows[0]["order_status"]!="pending") throw ApiError(409,"这次点菜已经回复过了");
+        auto status=action=="accept"?"accepted":"rejected";
+        db.query("UPDATE messages SET order_status=?,reject_reason=?,responded_at=UTC_TIMESTAMP(6) WHERE id=?",{status,action=="reject"?reason:"",id});
+        auto message=messageJson(db.query("SELECT "+messageColumns+" FROM messages WHERE id=?",{id})[0]);
+        tx.commit(); return message;
+    }));
+    server.Post(R"(/api/messages/([1-9][0-9]{0,18})/enjoy)", handle([](Db &db,const Request &r,const json&) {
+        auto me=actor(db,r); std::string id=r.matches[1];
+        Transaction tx(db);
+        auto rows=db.query("SELECT "+messageColumns+" FROM messages WHERE id=? AND type='dish' FOR UPDATE",{id});
+        if(rows.empty()) throw ApiError(404,"点菜消息不存在");
+        auto chef=rows[0]["recipient_id"].get<std::string>();
+        if(rows[0]["sender_id"]!=me) throw ApiError(403,"只能确认自己点的菜");
+        friendCheck(db,me,chef);
+        auto status=rows[0]["order_status"].get<std::string>();
+        if(status!="accepted"&&status!="enjoyed") throw ApiError(409,"只有好友做好的点菜才能确认享用");
+        if(status=="accepted") {
+            db.query("UPDATE messages SET order_status='enjoyed',enjoyed_at=UTC_TIMESTAMP(6) WHERE id=?",{id});
+            db.query("UPDATE users SET caicai_score=caicai_score+3 WHERE id=?",{chef});
+        }
+        auto message=messageJson(db.query("SELECT "+messageColumns+" FROM messages WHERE id=?",{id})[0]);
+        auto score=db.query("SELECT caicai_score FROM users WHERE id=?",{chef});
+        if(!score.empty()) message["chefScore"]=std::stoi(score[0]["caicai_score"].get<std::string>());
         tx.commit(); return message;
     }));
     server.Post("/api/messages/read", handle([](Db &db,const Request &r,const json &b) {

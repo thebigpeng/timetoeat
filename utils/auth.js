@@ -5,6 +5,17 @@ function getUser() {
   return user && user.token && user.id ? user : null
 }
 function isLoggedIn() { return !!getUser() }
+function cacheUser(user) {
+  if (!user) return null
+  const merged = Object.assign({}, api.getUser() || {}, user)
+  wx.setStorageSync(api.USER_KEY, merged)
+  return merged
+}
+async function updateGender(gender) {
+  if (!isLoggedIn()) throw new Error('请先登录')
+  const user = await api.request('/api/me/gender', 'PUT', { gender })
+  return cacheUser(user)
+}
 function getLoginCode() {
   return new Promise((resolve, reject) => {
     wx.login({ success: res => res.code ? resolve(res.code) : reject(new Error('微信未返回登录凭证')), fail: reject })
@@ -35,4 +46,4 @@ function requireLogin(options) {
     success(res) { if (res.confirm) wx.navigateTo({ url: '/pages/login/login' }) } })
   return false
 }
-module.exports = { getUser, isLoggedIn, getLoginCode, loginWithWechat, loginTest, logout, requireLogin }
+module.exports = { getUser, isLoggedIn, cacheUser, updateGender, getLoginCode, loginWithWechat, loginTest, logout, requireLogin }

@@ -14,7 +14,7 @@ if (!fs.existsSync(envPath)) {
   ].join('\n'))
   console.log('Created .env with random database passwords (not printed).')
 }
-const menu = require('../../timetoeat/utils/menu.js')
+const menu = require('../../utils/menu.js')
 const sqlString = value => "CONVERT(0x" + Buffer.from(String(value), 'utf8').toString('hex') + " USING utf8mb4)"
 const lines = menu.dishes.map(d => {
   const values = [d.id, d.name, d.desc, d.emoji, d.categoryId].map(sqlString)

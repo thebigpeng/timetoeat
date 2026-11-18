@@ -27,19 +27,31 @@
         <view class="msg-body">
           <view wx:if="{{item.type === 'text'}}" class="bubble">{{item.content}}</view>
           <view wx:elif="{{item.type === 'dish'}}" class="dish-bubble">
-            <text class="dish-bubble-emoji">{{item.dishEmoji}}</text>
-            <view class="grow">
-              <view class="dish-bubble-label">我想吃这道</view>
-              <view class="dish-bubble-name">{{item.dishName}}</view>
+            <view class="dish-main">
+              <text class="dish-bubble-emoji">{{item.dishEmoji}}</text>
+              <view class="grow">
+                <view class="dish-bubble-label">{{item.isMine ? '我想吃这道' : 'TA 想吃这道'}}</view>
+                <view class="dish-bubble-name">{{item.dishName}}</view>
+              </view>
+              <view
+                wx:if="{{item.canNudge}}"
+                class="message-nudge-btn"
+                data-order-id="{{item.id}}"
+                catchtap="onNudge"
+              >催一下</view>
+              <view
+                wx:if="{{item.canEnjoy}}"
+                class="dish-enjoy-btn {{enjoying ? 'disabled' : ''}}"
+                data-id="{{item.id}}"
+                catchtap="onEnjoyDish"
+              >已享用</view>
             </view>
-            <view
-              wx:if="{{item.isMine}}"
-              class="message-nudge-btn"
-              data-id="{{item.dishId}}"
-              data-name="{{item.dishName}}"
-              data-emoji="{{item.dishEmoji}}"
-              catchtap="onNudge"
-            >催一下</view>
+            <view wx:if="{{item.statusText}}" class="dish-status {{item.orderStatus}}">{{item.statusText}}</view>
+            <view wx:if="{{item.orderStatus === 'rejected' && item.rejectReason}}" class="dish-reason">原因：{{item.rejectReason}}</view>
+            <view wx:if="{{item.canRespond}}" class="dish-actions">
+              <view class="dish-response-btn accept {{responding ? 'disabled' : ''}}" data-id="{{item.id}}" catchtap="onAcceptDish">给你做</view>
+              <view class="dish-response-btn reject {{responding ? 'disabled' : ''}}" data-id="{{item.id}}" catchtap="openReject">做不了</view>
+            </view>
           </view>
           <view wx:elif="{{item.type === 'sticker'}}" class="sticker-bubble">{{item.content}}</view>
           <view wx:elif="{{item.type === 'nudge'}}" class="nudge-bubble">
@@ -80,5 +92,27 @@
       bindconfirm="send"
     />
     <view class="send-btn" bindtap="send">{{sending ? '发送中' : '发送'}}</view>
+  </view>
+
+  <view wx:if="{{rejectingMessage}}" class="response-mask" catchtap="closeReject" catchtouchmove="stopPropagation">
+    <view class="response-dialog" catchtap="stopPropagation">
+      <view class="response-title">这道菜暂时做不了</view>
+      <view class="response-subtitle">{{rejectingMessage.dishName}} · 可以告诉 TA 原因</view>
+      <view class="response-options">
+        <view
+          class="response-option {{rejectReason === item ? 'active' : ''}}"
+          wx:for="{{rejectReasonOptions}}"
+          wx:key="*this"
+          data-reason="{{item}}"
+          bindtap="chooseRejectReason"
+        >{{item}}</view>
+      </view>
+      <input class="response-input" value="{{rejectReasonCustom}}" maxlength="100" placeholder="其他原因（选填）" bindinput="onRejectReasonInput" />
+      <view class="response-hint">自定义原因优先；也可以不填写原因直接回复</view>
+      <view class="response-actions">
+        <view class="response-action response-cancel" catchtap="closeReject">取消</view>
+        <view class="response-action response-confirm" catchtap="submitReject">{{responding ? '提交中' : '确定'}}</view>
+      </view>
+    </view>
   </view>
 </view>
